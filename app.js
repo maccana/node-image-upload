@@ -3,7 +3,9 @@ var express = require("express"),
     formidable = require('formidable'),
     util = require('util')
     fs   = require('fs-extra'),
-    qt   = require('quickthumb');
+    qt   = require('quickthumb'),
+	 	walk    = require('walk'),
+	 	files   = [];
 
 // Use quickthumb
 app.use(qt.static(__dirname + '/'));
@@ -29,6 +31,7 @@ app.post('/upload', function (req, res){
         console.error(err);
       } else {
         console.log("success!")
+				console.log('here is the path: ' + temp_path);
       }
     });
   });
@@ -39,10 +42,30 @@ app.get('/', function(req, res) {
   res.sendFile(__dirname + '/public/index.html');
 });
 
+app.get('/images', function(req, res) {
+	// Walker options
+	var walker  = walk.walk('./uploads', { followLinks: false });
+
+	walker.on('file', function(root, stat, next) {
+	    // Add this file to the list of files
+	    files.push(root + '/' + stat.name);
+	    next();
+	});
+// images to be sent back to view
+	walker.on('end', function() {
+	    console.log(files);
+			var imageSelect = files[2];
+			var image = '<img src="' + imageSelect + '"/>';
+			console.log(image);
+			res.send(image);
+			
+	});
+});
+
 // Show the upload form	
 app.get('/upload-form', function (req, res){
   res.writeHead(200, {'Content-Type': 'text/html' });
-  var form = '<form action="/upload" enctype="multipart/form-data" method="post">Add a title: <input name="title" type="text" /><br><br><input multiple="multiple" name="upload" type="file" /><br><br><input type="submit" value="Upload" /></form>';
+  var form = '<form action="/upload" enctype="multipart/form-data" method="post">Add a title: <input name="title" type="text" /><br><br><input multiple="multiple" name="upload" type="file" /><br><br><input type="submit" value="Upload" /></form><br><a href="/">Index</a>';
   res.end(form); 
 }); 
 
