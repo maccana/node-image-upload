@@ -1,0 +1,13 @@
+{
+    "name": "node-uploader",
+    "version": "0.0.0",
+    "description": "Simple image upload and resize app",
+    "dependencies": {
+        "express": "latest",
+        "formidable": "latest",
+        "fs-extra": "latest",
+				 "quickthumb": "latest"
+				
+    },
+    "author": "mike"
+}
