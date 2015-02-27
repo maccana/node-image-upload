@@ -4,15 +4,17 @@ var express = require("express"),
     util = require('util')
     fs   = require('fs-extra'),
     qt   = require('quickthumb'),
-		walk    = require('walk');
+		walk    = require('walk'),
+		cookieParser = require('cookie-parser');
 		
 // Array to hold gallery images  		
 var	images   = [];
 
 // Use quickthumb
 app.use(qt.static(__dirname + '/'));
+app.use(cookieParser());
 
-// add ejs 
+// configure app
 app.set('view engine', 'ejs' );
 
 // route to upload form
@@ -23,6 +25,7 @@ app.post('/upload', function (req, res){
     res.write('received upload:\n\n');
     res.end(util.inspect({fields: fields, files: files}));
   });
+
   form.on('end', function(fields, files) {
     /* Temporary location of our uploaded file */
     var temp_path = this.openedFiles[0].path;
@@ -57,11 +60,12 @@ app.get('/gallery', function(req, res) {
 	var walker  = walk.walk('./uploads', { followLinks: false });
 	// if file found add to files array
 	walker.on('file', function(root, stat, next) {
-		// grab files extension
 		var fileExt = stat.name.split('.').pop();
-		// make sure file is image format before pushing to images array
-		if(fileExt === 'jpg' || fileExt === 'jpeg' 
-				|| fileExt === 'png' || fileExt === 'gif'){
+		if(	 fileExt === 'jpg' 	|| fileExt === 'JPG' 
+			|| fileExt === 'JPEG' || fileExt === 'jpeg' 
+			|| fileExt === 'png' 	|| fileExt === 'PNG' 
+			|| fileExt === 'gif'	|| fileExt === 'GIF' ){
+	    // Add this file to the list of files
 	    images.push(root + '/' + stat.name);
 		
 		} else { 
@@ -75,7 +79,6 @@ app.get('/gallery', function(req, res) {
 		 	res.locals.images = images;
 			// render the images view
 			res.render('gallery', images);
-	
 	    // send one image to browser
 			// var imageSelect = files[2];
 			// var image = '<img src="' + imageSelect + '"/>';
@@ -91,9 +94,18 @@ app.get('/upload-form', function (req, res){
   res.end(form); 
 }); 
 
-// api test route logging out json to the browser 
+// logging out json to the browser via api url
 app.get('/api/:name', function(req, res) {
   res.json(200, { "hello": req.params.name });
+});
+
+// test route for cookie parser in browser
+app.get('/name/:name', function(req, res) {
+	res.cookie('name', req.params.name)
+	.send('<p>To see cookie, <a href="/name">Go Here!</a></p>')
+});
+app.get('/name', function(req, res) {
+	res.clearCookie('name').send(req.cookies.name);
 });
 
 // Serve static files
