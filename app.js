@@ -14,6 +14,9 @@ var	images   = [];
 app.use(qt.static(__dirname + '/'));
 app.use(cookieParser());
 
+// Serve static files
+app.use(express.static('./public'));
+
 // configure app
 app.set('view engine', 'ejs' );
 
@@ -108,8 +111,6 @@ app.get('/name', function(req, res) {
 	res.clearCookie('name').send(req.cookies.name);
 });
 
-// Serve static files
-app.use(express.static('./public'));
 
 app.listen(8080);
 console.log("Running on port 8080...")
