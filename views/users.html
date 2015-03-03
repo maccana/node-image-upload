@@ -1,0 +1,13 @@
+<h1>User List</h1>
+		<div id="name" class="row">
+			<p>Click a user to display JSON</p>
+			<!-- <%= users %> use to view users as raw JSON -->
+			<ul>
+				<!-- list out users with links to individual JSON -->
+				<% for(var i=0; i<users.length; i++) {%>
+					<a rel="group" href="/users/<%= users[i].id %>">
+					 <li style="list-style:none"><%= users[i].first_name %></li>			
+					</a>
+				<% } %>
+			</ul>
+		</div>
