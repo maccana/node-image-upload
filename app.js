@@ -1,97 +1,80 @@
-var express = require('express'),
-    app = express(),
-    formidable = require('formidable'),
-    util = require('util')
-    fs = require('fs-extra'),
-    qt = require('quickthumb'),
-		walk = require('walk'),
-		bodyParser = require('body-parser'),
-		session = require('express-session'),
-		mongoose = require('mongoose'),
-		path = require('path'),
-		cookieParser = require('cookie-parser');
-		
-		
-// Mongoose connection to MongoDB (ted/ted is readonly)
-mongoose.connect('mongodb://****:****@ds049651.mongolab.com:49651/node-image-upload', 		
-function (error) {
-    if (error) {
-        console.log(error);
-    }
-});
-// Mongoose Schema definition
-var Schema = mongoose.Schema;
-var UserSchema = new Schema({
-    first_name: String,
-    last_name: String,
-    email: String
-});
-		
-// Mongoose Model definition
-var User = mongoose.model('users', UserSchema);
-// Serve static files
-// app.use(express.static('./public'));
-// configure app
-app.use(session({secret: 'this is a secret'}));
-app.use(cookieParser());
-// View config
-app.set('views', path.join( __dirname + '/views'));
-app.engine('html', require('ejs').renderFile);
-app.use(express.static(path.join(__dirname, 'bower_components/foundation')));
-// Body parser 
+// dependencies
+var express = require('express');
+var path = require('path');
+var favicon = require('serve-favicon');
+var logger = require('morgan');
+var cookieParser = require('cookie-parser');
+var bodyParser = require('body-parser');
+var mongoose = require('mongoose');
+var passport = require('passport');
+var LocalStrategy = require('passport-local').Strategy;
+
+var routes = require('./routes/index');
+var users = require('./routes/users');
+
+var app = express();
+
+// view engine setup
+app.set('views', path.join(__dirname, 'views'));
+app.set('view engine', 'jade');
+
+// uncomment after placing your favicon in /public
+//app.use(favicon(__dirname + '/public/favicon.ico'));
+app.use(logger('dev'));
 app.use(bodyParser.json());
-app.use(bodyParser.urlencoded({extended: true}));
+app.use(bodyParser.urlencoded({ extended: false }));
+app.use(cookieParser());
+app.use(require('express-session')({
+    secret: 'keyboard cat',
+    resave: false,
+    saveUninitialized: false
+}));
+app.use(passport.initialize());
+app.use(passport.session());
+app.use(express.static(path.join(__dirname, 'public')));
 
-// Root URL - sign up form
-app.get('/', function (req, res) {
-    // res.send("<a href='/users'>Show Users</a>");
-		res.render('index.html');
+
+app.use('/', routes);
+
+// passport config
+var Account = require('./models/account');
+passport.use(new LocalStrategy(Account.authenticate()));
+passport.serializeUser(Account.serializeUser());
+passport.deserializeUser(Account.deserializeUser());
+
+// mongoose
+mongoose.connect('mongodb://localhost/passport_local_mongoose_express4');
+
+// catch 404 and forward to error handler
+app.use(function(req, res, next) {
+    var err = new Error('Not Found');
+    err.status = 404;
+    next(err);
 });
 
-// Routes for mongodb 
-// app.get('/', function (req, res) {
-//     res.send("<a href='/users'>Show Users</a>");
-// });
+// error handlers
 
-app.get('/users', function (req, res) {
-    User.find({}, function (err, docs) {
-			// render a view here to display the json from mongolab db
-      //res.json(docs);
-			res.render('users.html', {users: docs} ); 
+// development error handler
+// will print stacktrace
+if (app.get('env') === 'development') {
+    app.use(function(err, req, res, next) {
+        res.status(err.status || 500);
+        res.render('error', {
+            message: err.message,
+            error: err
+        });
+    });
+}
+
+// production error handler
+// no stacktraces leaked to user
+app.use(function(err, req, res, next) {
+    res.status(err.status || 500);
+    res.render('error', {
+        message: err.message,
+        error: {}
     });
 });
 
-// Create new user 
-app.post('/users', function(req, res){
-	console.log('User added: ' + JSON.stringify(req.body));
-	var user = new User(req.body);
-  user.save(function(err) {
-    if (err) {
-      return res.send(err);
-    }
-		var data = 'success';
-    res.send(data);
-  });
-	
-});
 
-// Get specific user 
-app.get('/users/:id', function (req, res) {
-    if (req.params.id) {
-        User.findOne({ _id: req.params.id }, function (err, doc) {
-					// render a view here to display the user from mongolab db
-					// var user = docs;
-					//res.json(doc);
-		       res.render('user.html', {user:doc} ); 
-        });
-    }
-});
-	
-// index home page
-// app.get('/', function(req, res) {
-//   res.sendFile(__dirname + '/public/index.html');
-// });
-
-
-app.listen(3040);
-console.log("Running on port 3040...")
+module.exports = app;
