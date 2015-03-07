@@ -36,11 +36,13 @@ app.use(passport.session());
 var flash = require('connect-flash');
 app.use(flash());
 
-// Initialize Passport
+// Initialize Passport 
+// serialization / deserialization and loading login / sign up local strategies 
 var initPassport = require('./passport/init');
 initPassport(passport);
 
-var routes = require('./routes/index')(passport);
+// Require routes and passing passport to index.js for athentication
+var routes = require('./routes/index')(passport); 
 app.use('/', routes);
 
 /// catch 404 and forward to error handler
