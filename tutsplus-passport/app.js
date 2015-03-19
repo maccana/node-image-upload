@@ -4,9 +4,11 @@ var favicon = require('static-favicon');
 var logger = require('morgan');
 var cookieParser = require('cookie-parser');
 var bodyParser = require('body-parser');
+var qt   = require('quickthumb');
 
 var dbConfig = require('./db');
 var mongoose = require('mongoose');
+
 // Connect to DB
 mongoose.connect(dbConfig.url);
 
@@ -44,6 +46,9 @@ initPassport(passport);
 // Require routes and passing passport to index.js for athentication
 var routes = require('./routes/index')(passport); 
 app.use('/', routes);
+
+// Use quickthumb - same as path.join?
+app.use(qt.static(__dirname + '/'));
 
 /// catch 404 and forward to error handler
 app.use(function(req, res, next) {
