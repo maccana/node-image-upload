@@ -1,0 +1,15 @@
+extends layout
+
+block content
+  h1 Upload Form -- user: #{user.username}
+  form(method="post", enctype="multipart\/form-data", action="/upload")
+    input(type="hidden", name="userId", value="#{user._id}")
+    p Title:
+        input(type="text", name="title")
+    p Image:
+        input(type="file", name="upload")
+
+    p
+        input(type="submit", value="Upload")
+
+
