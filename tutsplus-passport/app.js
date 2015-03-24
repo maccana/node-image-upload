@@ -5,7 +5,7 @@ var logger = require('morgan');
 var cookieParser = require('cookie-parser');
 var bodyParser = require('body-parser');
 var qt   = require('quickthumb');
-
+var multer  = require('multer');
 var dbConfig = require('./db');
 var mongoose = require('mongoose');
 
@@ -13,6 +13,12 @@ var mongoose = require('mongoose');
 mongoose.connect(dbConfig.url);
 
 var app = express();
+
+// multer direcory for file uploads - https://www.npmjs.com/package/multer
+app.use(multer({ dest: './uploads/multer/',  
+		rename: function (fieldname, filename) {
+			return filename.replace(/\W+/g, '-').toLowerCase(); 
+  }}))
 
 // view engine setup
 app.set('views', path.join(__dirname, 'views'));
