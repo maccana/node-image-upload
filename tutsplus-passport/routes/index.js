@@ -5,8 +5,9 @@ var	formidable = require('formidable');
 var util = require('util');
 var fs   = require('fs-extra');
 var mongoose = require('mongoose');
-var Gallery = require('../models/gallery');
 var walk    = require('walk');
+
+var Gallery = require('../models/gallery');
 
 var images = []; // array for gallery image uploads
 
@@ -112,7 +113,7 @@ module.exports = function(passport){
 						// create thumbs from src dir images
 						makeThumbs(new_location);
 						function makeThumbs(path) {
-							// check dir exists and read files synchronously
+							// check dir exists and read files synchronously - fs-walk might do better job
 							if(fs.existsSync(path)) {
 								fs.readdirSync(new_location).forEach(function(file, index) {
 									var curImage = path + file;
