@@ -1,3 +1,10 @@
+Gallery app built on node / express 4 passport tutorial listed below.
+
+Additional Modules:
+===================
+https://github.com/zivester/node-quickthumb
+
+
 passport-mongo
 ==============
 
