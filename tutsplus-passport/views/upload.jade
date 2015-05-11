@@ -6,9 +6,10 @@ block content
     input(type="hidden", name="userId", value="#{user._id}")
     p Title:
         input(type="text", name="title")
+    p Description    
+        textarea(rows="10", name="description")
     p Image:
-        input(type="file", name="upload")
-
+        input(type="file", name="upload", multiple)
     p
         input(type="submit", value="Upload")
 
