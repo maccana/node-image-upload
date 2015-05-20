@@ -8,6 +8,8 @@ var mongoose = require('mongoose');
 var walk    = require('walk');
 
 var Gallery = require('../models/gallery');
+var galleries = require('../controllers/galleries.server.controller.js');
+
 
 var images = []; // array for gallery image uploads
 
@@ -24,7 +26,7 @@ var isAuthenticated = function (req, res, next) {
 	res.redirect('/');
 }
 
-module.exports = function(passport){
+module.exports = function(passport) {
 
 	/* GET login page. */
 	router.get('/', function(req, res) {
@@ -40,7 +42,7 @@ module.exports = function(passport){
 	}));
 
 	/* GET Registration Page */
-	router.get('/signup', function(req, res){
+	router.get('/signup', function(req, res) {
 		res.render('register',{message: req.flash('message')});
 	});
 
@@ -52,7 +54,7 @@ module.exports = function(passport){
 	}));
 
 	/* GET Home Page */
-	router.get('/home', isAuthenticated, function(req, res){
+	router.get('/home', isAuthenticated, function(req, res) {
 		res.render('home', { user: req.user });
 	});
 
@@ -71,21 +73,30 @@ module.exports = function(passport){
 	
 	// GET the gallery create form - passing current user to the view 
 	router.get('/gallery/create', isAuthenticated, function(req, res, next) {
-		res.render('multer-form', { user: req.user, message: 'Welcome to Multer upload'});
+		res.render('multer-form', { user: req.user, message: 'Welcome to Multer upload' });
 	});	
 
 	/* POST multer new Gallery and image uploads */
-	router.post('/api/file', function(req, res){
-		// array to hold uploaded images
+	router.post('/gallery', function(req, res){
+		var uploads = []; // array to store the files in upload
+		// debugging for single image upload fail bug!!
+		console.log("UPLOAD DATA: " + JSON.stringify(req.files.upload.path));
+
+		// array to hold paths of uploaded images
 		var images = [];
+
 		// used to delete images from multer dir after they've been moved 
 		var multer_path = 'uploads/multer';		
 		var fileCount = req.files.upload.length;
-		
+
+		if(fileCount>1) {
+			console.log("more than one image uploaded.....");
+		}
+		// refactor required
 		for(var i=0; i<fileCount; i++) {
 			// var imgURL = req.files.upload[i].path;
 			var file_name = req.files.upload[i].originalname;
-			var temp_path = req.files.upload[i].path;
+			var temp_path = req.files.upload[i].path; // the file in multer folder
 			// set up custom dir path - change dir name if necessary 
 			var new_location = 'galleries/frost/' + req.body.title + '/' + file_name;
 			
@@ -145,8 +156,8 @@ module.exports = function(passport){
 							      	}
 							    });
 							    //fs.rmdirSync(path); this deletes the dir created by multer 
-								// which breaks the image upoad after one pass VERY BAD MONKEY!
-								// maybe useful for some use cases
+									// breaking the image upload after one pass VERY BAD MONKEY!
+									// maybe useful in some use cases
 						  	}
 						}; // end deleteFolderRecursive
 					} // end fileCount if
@@ -162,26 +173,21 @@ module.exports = function(passport){
 			images: images,
 			created_at : Date.now()
 	    }, function(err, file){
-	        if(err){console.log(err)}
-	        console.log(file)
+	        if(err){
+	        	console.log("There was an error: " +err)
+	        } else {
+	        	console.log("FILE: " + file);
+	        }
+	        	
 			});
 			res.redirect('/home'); // redirect user home 
 	});
 
-	// GET index of user galleries
-	router.get('/user-galleries/:id', isAuthenticated, function(req, res) {
-		console.log(req.params.id);
-		mongoose.model('Gallery').find({uid: req.params.id}, function(err, galleries) {
-			console.log(galleries);
-			res.render('galleries/show', { galleries: galleries, title: "Gallery Index" } );
-		});
-	});
-
+	// new GET with call to galleries controller
+	router.get('/user-galleries/:id', isAuthenticated, galleries.list);	
+	
 	// GET single gallery 
 	router.get('/view-gallery/:id', isAuthenticated, function(req, res) {
-		// if isAuth = true user logged in and can see Gallery Index 
-		// update to be able to view only galleries with their id
-		
 		// get the gallery from mongodb
 		mongoose.model('Gallery').find({_id: req.params.id}, function(err, gallery) {
 			console.log(gallery);
