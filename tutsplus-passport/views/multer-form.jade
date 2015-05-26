@@ -1,0 +1,16 @@
+extends layout
+
+block content
+  h1 #{message}
+  p User ID: #{user._id}	
+  form(method="post", enctype="multipart\/form-data", action="/gallery")
+    input(type="hidden", name="userId", value="#{user._id}")
+    p Title:
+        input(type="text", name="title")
+    p Description    
+        textarea(rows="10", name="description")
+    p Image:
+        input(type="file", name="upload", multiple)
+
+    p
+        input(type="submit", value="Upload")
